@@ -1,18 +1,23 @@
 package com.absolutephoenix.farminggame.game;
 
+import com.absolutephoenix.farminggame.game.texture.Texture;
 import org.joml.Vector2f;
 
 public class Sprite {
     private final Vector2f position;
     private final float width;
     private final float height;
-    private final float[] color;
+    private final Texture texture;
 
-    public Sprite(Vector2f position, float width, float height, float[] color) {
+    public Sprite(Vector2f position, Texture texture) {
+        this(position, texture.getWidth(), texture.getHeight(), texture);
+    }
+
+    public Sprite(Vector2f position, float width, float height, Texture texture) {
         this.position = new Vector2f(position);
         this.width = width;
         this.height = height;
-        this.color = color;
+        this.texture = texture;
     }
 
     public float getX() {
@@ -31,8 +36,8 @@ public class Sprite {
         return height;
     }
 
-    public float[] getColor() {
-        return color;
+    public Texture getTexture() {
+        return texture;
     }
 
     public Vector2f getPosition() {

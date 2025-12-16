@@ -1,19 +1,29 @@
 package com.absolutephoenix.farminggame.game.world;
 
+import com.absolutephoenix.farminggame.game.texture.Texture;
+
 public abstract class Tile {
     private final String id;
+    private final Texture texture;
 
-    protected Tile(String id) {
+    protected Tile(String id, Texture texture) {
         this.id = id;
+        this.texture = texture;
     }
 
     public String getId() {
         return id;
     }
 
-    public abstract float getWidth();
+    public float getWidth() {
+        return texture.getWidth();
+    }
 
-    public abstract float getHeight();
+    public float getHeight() {
+        return texture.getHeight();
+    }
 
-    public abstract float[] getColor();
+    public Texture getTexture() {
+        return texture;
+    }
 }

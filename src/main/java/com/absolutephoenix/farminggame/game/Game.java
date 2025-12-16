@@ -1,6 +1,9 @@
 package com.absolutephoenix.farminggame.game;
 
 import com.absolutephoenix.farminggame.config.GameConfiguration;
+import com.absolutephoenix.farminggame.game.texture.Texture;
+import com.absolutephoenix.farminggame.game.texture.TextureLoader;
+import com.absolutephoenix.farminggame.game.texture.TextureType;
 import com.absolutephoenix.farminggame.game.world.GrassTile;
 import com.absolutephoenix.farminggame.game.world.Registry;
 import com.absolutephoenix.farminggame.game.world.Tile;
@@ -24,13 +27,17 @@ public class Game {
     private final List<Sprite> worldSprites = new ArrayList<>();
     private final GameServer gameServer;
     private final Double targetFps;
+    private final Texture defaultTexture;
 
     public Game(Window window, GameConfiguration configuration, GameServer gameServer) {
         this.window = window;
         this.input = new Input();
         this.camera = new Camera(window.getWidth(), window.getHeight());
         this.spriteBatch = new SpriteBatch();
-        this.player = new Player(new Vector2f(0, 0), 200f, 32f, new float[]{1f, 1f, 1f});
+        this.defaultTexture = TextureLoader.loadTexture(
+                TextureLoader.buildLocation("farminggame", TextureType.UNKNOWN, "default.png")
+        );
+        this.player = new Player(new Vector2f(0, 0), 200f, 32f, defaultTexture);
         this.gameServer = gameServer;
         this.targetFps = configuration.getTargetFps().orElse(null);
         if (!this.gameServer.isRunning()) {
@@ -45,12 +52,12 @@ public class Game {
     }
 
     private void seedWorld() {
-        GrassTile grassTile = new GrassTile("grass", 32, 32, new float[]{0.3f, 0.8f, 0.3f});
+        GrassTile grassTile = new GrassTile("grass", defaultTexture);
         tileRegistry.register(grassTile.getId(), grassTile);
         for (int x = -10; x <= 10; x++) {
             for (int y = -10; y <= 10; y++) {
                 Sprite sprite = new Sprite(new Vector2f(x * grassTile.getWidth(), y * grassTile.getHeight()),
-                        grassTile.getWidth(), grassTile.getHeight(), grassTile.getColor());
+                        grassTile.getWidth(), grassTile.getHeight(), grassTile.getTexture());
                 worldSprites.add(sprite);
             }
         }

@@ -1,5 +1,6 @@
 package com.absolutephoenix.farminggame.game;
 
+import com.absolutephoenix.farminggame.game.texture.Texture;
 import org.joml.Vector2f;
 import org.lwjgl.glfw.GLFW;
 
@@ -8,10 +9,10 @@ public class Player {
     private final float speed;
     private final Sprite sprite;
 
-    public Player(Vector2f startPosition, float speed, float size, float[] color) {
+    public Player(Vector2f startPosition, float speed, float size, Texture texture) {
         this.position = new Vector2f(startPosition);
         this.speed = speed;
-        this.sprite = new Sprite(position, size, size, color);
+        this.sprite = new Sprite(position, size, size, texture);
     }
 
     public void update(double deltaSeconds, Input input) {

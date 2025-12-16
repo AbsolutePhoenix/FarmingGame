@@ -3,77 +3,25 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '8.1.1'
 }
 
-project.ext.lwjglVersion = "3.3.6"
-project.ext.steamworks4jserverVersion = "1.9.0"
-project.ext.steamworks4jVersion = "1.9.0"
-project.ext.jomlVersion = "1.10.8"
-project.ext.jomlprimitivesVersion = "1.10.0"
-project.ext.lwjgl3awtVersion = "0.1.8"
+group = providers.gradleProperty('projectGroup').get()
+version = providers.gradleProperty('projectVersion').get()
 
-group = 'com.absolutephoenix.farminggame'
-version = '1.0-SNAPSHOT'
+def lwjglVersion = providers.gradleProperty('lwjglVersion').get()
+def steamworks4jserverVersion = providers.gradleProperty('steamworks4jserverVersion').get()
+def steamworks4jVersion = providers.gradleProperty('steamworks4jVersion').get()
+def jomlVersion = providers.gradleProperty('jomlVersion').get()
+def jomlprimitivesVersion = providers.gradleProperty('jomlprimitivesVersion').get()
+def lwjgl3awtVersion = providers.gradleProperty('lwjgl3awtVersion').get()
 
 def lwjglModules = [
-        "lwjgl",
-        "lwjgl-assimp",
-        "lwjgl-bgfx",
-        "lwjgl-cuda",
-        "lwjgl-egl",
-        "lwjgl-fmod",
-        "lwjgl-freetype",
-        "lwjgl-glfw",
-        "lwjgl-harfbuzz",
-        "lwjgl-hwloc",
-        "lwjgl-jawt",
-        "lwjgl-jemalloc",
-        "lwjgl-ktx",
-        "lwjgl-libdivide",
-        "lwjgl-llvm",
-        "lwjgl-lmdb",
-        "lwjgl-lz4",
-        "lwjgl-meow",
-        "lwjgl-meshoptimizer",
-        "lwjgl-msdfgen",
-        "lwjgl-nanovg",
-        "lwjgl-nfd",
-        "lwjgl-nuklear",
-        "lwjgl-odbc",
-        "lwjgl-openal",
-        "lwjgl-opencl",
-        "lwjgl-opengl",
-        "lwjgl-opengles",
-        "lwjgl-openvr",
-        "lwjgl-openxr",
-        "lwjgl-opus",
-        "lwjgl-ovr",
-        "lwjgl-par",
-        "lwjgl-remotery",
-        "lwjgl-rpmalloc",
-        "lwjgl-shaderc",
-        "lwjgl-spvc",
-        "lwjgl-sse",
-        "lwjgl-stb",
-        "lwjgl-tinyexr",
-        "lwjgl-tinyfd",
-        "lwjgl-tootle",
-        "lwjgl-vma",
-        "lwjgl-vulkan",
-        "lwjgl-xxhash",
-        "lwjgl-yoga",
-        "lwjgl-zstd"
+        "lwjgl", "lwjgl-assimp", "lwjgl-bgfx", "lwjgl-cuda", "lwjgl-egl", "lwjgl-fmod", "lwjgl-freetype", "lwjgl-glfw",
+        "lwjgl-harfbuzz", "lwjgl-hwloc", "lwjgl-jawt", "lwjgl-jemalloc", "lwjgl-ktx", "lwjgl-libdivide", "lwjgl-llvm",
+        "lwjgl-lmdb", "lwjgl-lz4", "lwjgl-meow", "lwjgl-meshoptimizer", "lwjgl-msdfgen", "lwjgl-nanovg", "lwjgl-nfd",
+        "lwjgl-nuklear", "lwjgl-odbc", "lwjgl-openal", "lwjgl-opencl", "lwjgl-opengl", "lwjgl-opengles", "lwjgl-openvr",
+        "lwjgl-openxr", "lwjgl-opus", "lwjgl-ovr", "lwjgl-par", "lwjgl-remotery", "lwjgl-rpmalloc", "lwjgl-shaderc",
+        "lwjgl-spvc", "lwjgl-sse", "lwjgl-stb", "lwjgl-tinyexr", "lwjgl-tinyfd", "lwjgl-tootle", "lwjgl-vma",
+        "lwjgl-vulkan", "lwjgl-xxhash", "lwjgl-yoga", "lwjgl-zstd"
 ]
-
-def nativeEnabledModules = lwjglModules.findAll { it != 'lwjgl-vulkan' }
-
-def addLwjglNativesConfiguration(String configurationName, String classifier) {
-    dependencies.add(configurationName, platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
-    nativeEnabledModules.each { module ->
-        dependencies.add(configurationName, "org.lwjgl:${module}::${classifier}")
-    }
-    if (classifier == 'natives-macos') {
-        dependencies.add(configurationName, "org.lwjgl:lwjgl-vulkan::${classifier}")
-    }
-}
 
 repositories {
     mavenCentral()
@@ -85,7 +33,6 @@ dependencies {
     lwjglModules.each { module ->
         implementation "org.lwjgl:${module}"
     }
-
     implementation "com.code-disaster.steamworks4j:steamworks4j-server:${steamworks4jserverVersion}"
     implementation "com.code-disaster.steamworks4j:steamworks4j:${steamworks4jVersion}"
     implementation "org.joml:joml:${jomlVersion}"
@@ -93,30 +40,6 @@ dependencies {
     implementation "org.lwjglx:lwjgl3-awt:${lwjgl3awtVersion}"
 }
 
-configurations {
-    windowsNatives
-    linuxNatives
-    macNatives
+tasks.named('build') {
+    dependsOn tasks.named('shadowJar')
 }
-
-addLwjglNativesConfiguration('windowsNatives', 'natives-windows')
-addLwjglNativesConfiguration('linuxNatives', 'natives-linux')
-addLwjglNativesConfiguration('macNatives', 'natives-macos')
-
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
-tasks.register('shadowJarWindows', ShadowJar) {
-    archiveClassifier.set('windows-x64')
-    configurations = [project.configurations.runtimeClasspath, project.configurations.windowsNatives]
-}
-
-tasks.register('shadowJarLinux', ShadowJar) {
-    archiveClassifier.set('linux-x64')
-    configurations = [project.configurations.runtimeClasspath, project.configurations.linuxNatives]
-}
-
-tasks.register('shadowJarMac', ShadowJar) {
-    archiveClassifier.set('mac-x64')
-    configurations = [project.configurations.runtimeClasspath, project.configurations.macNatives]
-}
-

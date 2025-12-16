@@ -9,14 +9,18 @@ import com.absolutephoenix.farminggame.game.world.Registry;
 import com.absolutephoenix.farminggame.game.world.Tile;
 import com.absolutephoenix.farminggame.server.GameServer;
 import org.joml.Vector2f;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.stb.STBEasyFont;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.nio.ByteBuffer;
 
 public class Game {
     private static final double TARGET_UPS = 60.0;
+    private static final double METRICS_INTERVAL = 1_000_000_000.0;
 
     private final Window window;
     private final Input input;
@@ -28,6 +32,13 @@ public class Game {
     private final GameServer gameServer;
     private final Double targetFps;
     private final Texture defaultTexture;
+    private final ByteBuffer textBuffer = BufferUtils.createByteBuffer(2048);
+
+    private int fps;
+    private int ups;
+    private int frameCounter;
+    private int updateCounter;
+    private double metricsAccumulator;
 
     public Game(Window window, GameConfiguration configuration, GameServer gameServer) {
         this.window = window;
@@ -77,6 +88,7 @@ public class Game {
             lastTime = now;
             updateAccumulator += delta;
             renderAccumulator += delta;
+            metricsAccumulator += delta;
 
             while (updateAccumulator >= updateInterval) {
                 update(updateInterval / 1_000_000_000.0);
@@ -94,10 +106,19 @@ public class Game {
                     Thread.currentThread().interrupt();
                 }
             }
+
+            if (metricsAccumulator >= METRICS_INTERVAL) {
+                fps = frameCounter;
+                ups = updateCounter;
+                frameCounter = 0;
+                updateCounter = 0;
+                metricsAccumulator -= METRICS_INTERVAL;
+            }
         }
     }
 
     private void update(double deltaSeconds) {
+        updateCounter++;
         player.update(deltaSeconds, input);
         camera.follow(player.getPosition());
         if (window.isResized()) {
@@ -111,6 +132,7 @@ public class Game {
     }
 
     private void render() {
+        frameCounter++;
         GL11.glClearColor(0.1f, 0.1f, 0.2f, 1f);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
@@ -119,6 +141,27 @@ public class Game {
         worldSprites.forEach(spriteBatch::add);
         spriteBatch.render(camera);
 
+        renderOverlay();
+
         window.update();
+    }
+
+    private void renderOverlay() {
+        String metricsText = String.format("FPS: %d | UPS: %d", fps, ups);
+
+        GL11.glMatrixMode(GL11.GL_PROJECTION);
+        GL11.glLoadIdentity();
+        GL11.glOrtho(0, window.getWidth(), window.getHeight(), 0, -1, 1);
+        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+        GL11.glLoadIdentity();
+
+        textBuffer.clear();
+        int quads = STBEasyFont.stb_easy_font_print(10, 10, metricsText, null, textBuffer);
+
+        GL11.glColor3f(1f, 1f, 1f);
+        GL11.glEnableClientState(GL11.GL_VERTEX_ARRAY);
+        GL11.glVertexPointer(2, GL11.GL_FLOAT, 16, textBuffer);
+        GL11.glDrawArrays(GL11.GL_QUADS, 0, quads * 4);
+        GL11.glDisableClientState(GL11.GL_VERTEX_ARRAY);
     }
 }
